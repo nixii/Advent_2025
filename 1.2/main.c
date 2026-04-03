@@ -13,7 +13,7 @@ int main(void)
 {
 
 	// open the file
-	FILE *f = fopen("1_Secret_Entrance/inp.txt", "r");
+	FILE *f = fopen("1.2/inp.txt", "r");
 	
 	// check
 	if (f == NULL)

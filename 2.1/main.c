@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	longs ends = longs_new();
 	
 	// open the file stream
-	FILE *f = fopen("2/inp.txt", "r");
+	FILE *f = fopen("2.1/inp.txt", "r");
 	if (f == NULL) return 1;
 	
 	// the buffer to store the read bytes
