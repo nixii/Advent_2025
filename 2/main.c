@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 // dynamic array meanings
 #define DA_MIN_SIZE 4
@@ -58,35 +59,93 @@ void ints_destroy(ints *i) {
 int main(int argc, char **argv) {
 
 	// store the values
-	ints start = ints_new();
+	ints starts = ints_new();
 	ints ends = ints_new();
 	
 	// open the file stream
 	FILE *f = fopen("2/inp.txt", "r");
 	if (f == NULL) return 1;
 	
-	// read the numbers
+	// the buffer to store the read bytes
 	char buf[4096];
-	char numStr[4096];
-	int numStrI = 0;
-	memset(numStr, 0, sizeof(numStr));
-	size_t nread;
-	while ((nread = fread(buf, 1, sizeof(buf), f)) > 0) {
-		for (int i = 0; i < nread; i++) {
+
+	// store the string for the number
+	char numString[33];
+	int numStrIdx = 0;
+
+	// clear the number string so it has null terminators
+	memset(numString, 0, sizeof(numString));
+
+	// the current amount of bytes read
+	size_t numRead = 0;
+
+	// loop while there are bytes to stream
+	// this implementation relies on a trailing space else the final number is skipped
+	while ((numRead = fread(buf, 1, sizeof(buf), f)) > 0) {
+
+		// loop through the read bytes
+		for (int i = 0; i < numRead; i++) {
+
+			// get the current character
 			char c = buf[i];
-			switch (c)
-			{
-			case '0'...'1':
-				numStr[numStrI++] = c;
-				break;
-			default:
-				printf("str: %s\n", numStr);
-				memset(numStr, 0, sizeof(numStr));
-				numStrI = 0;
-				break;
+
+			// if c is a number then add it to the number string
+			if (c >= '0' && c <= '9') {
+				numString[numStrIdx++] = c;
+			}
+
+			// if it is not a number then it is ending a 
+			else {
+
+				// choose the correct array to add it to
+				ints *addedTo = c == '-' ? &starts : &ends;
+
+				// finalize the string
+				int value = atoi(numString);
+				memset(numString, 0, sizeof(numString));
+				numStrIdx = 0;
+				
+				// add it
+				ints_append(addedTo, value);
 			}
 		}
 	}
 
+	// double check the lengths
+	assert(starts.len == ends.len);
+
+	// a dynarr of all solutions
+	ints solutions = ints_new();
+
+	// loop for each range
+	for (int i = 0; i < starts.len; i++) {
+		
+		// the starting and ending values
+		int start = starts.data[i];
+		int end = ends.data[i];
+
+		// iterate through each number
+		for (int i = start; i <= end; i++) {
+
+			// TODO
+			// check the integer to see if it follows the pattern.
+			// if it follows the pattern then add it to the solutions.
+
+		}
+		printf("\n\n");
+	}
+
+	// the final value to have
+	int solution = 0;
+
+	// sum the solution
+	for (int i = 0; i < solutions.len; i++) {
+		solution += solutions.data[i];
+	}
+
+	// print the solution
+	printf("The solution is: %d\n", solution);
+
+	// all done!
 	return 0;
 }
