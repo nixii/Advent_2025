@@ -9,16 +9,16 @@
 #define DA_GROWTH_RATE 2
 
 // dynamic array of integers
-typedef struct ints {
-	int *data;
+typedef struct longs {
+	long *data;
 	size_t len;
 	size_t cap;
-} ints;
+} longs;
 
 // create a new integer dynamic array
-ints ints_new() {
-	int *data = malloc(DA_MIN_SIZE * sizeof(int));
-	return (ints){
+longs longs_new() {
+	long *data = malloc(DA_MIN_SIZE * sizeof(long));
+	return (longs){
 		.len = 0,
 		.cap = data == NULL ? 0 : DA_MIN_SIZE,
 		.data = data
@@ -26,10 +26,10 @@ ints ints_new() {
 }
 
 // grow a dynarr
-void ints_grow(ints *i) {
+void longs_grow(longs *i) {
 	if (i->cap == 0) return;
 	if (i->len < i->cap) return;
-	int *data = realloc(i->data, sizeof(int) * i->cap * DA_GROWTH_RATE);
+	long *data = realloc(i->data, sizeof(long) * i->cap * DA_GROWTH_RATE);
 	if (data == NULL) {
 		free(i->data);
 		i->len = 0;
@@ -41,14 +41,14 @@ void ints_grow(ints *i) {
 }
 
 // append to the da
-void ints_append(ints *i, int in) {
-	ints_grow(i);
+void longs_append(longs *i, long in) {
+	longs_grow(i);
 	i->data[i->len] = in;
 	i->len++;
 }
 
 // free the da
-void ints_destroy(ints *i) {
+void longs_destroy(longs *i) {
 	free(i->data);
 	i->data = NULL;
 	i->len = 0;
@@ -59,8 +59,8 @@ void ints_destroy(ints *i) {
 int main(int argc, char **argv) {
 
 	// store the values
-	ints starts = ints_new();
-	ints ends = ints_new();
+	longs starts = longs_new();
+	longs ends = longs_new();
 	
 	// open the file stream
 	FILE *f = fopen("2/inp.txt", "r");
@@ -98,15 +98,15 @@ int main(int argc, char **argv) {
 			else {
 
 				// choose the correct array to add it to
-				ints *addedTo = c == '-' ? &starts : &ends;
+				longs *addedTo = c == '-' ? &starts : &ends;
 
 				// finalize the string
-				int value = atoi(numString);
+				long value = strtol(numString, NULL, 10);
 				memset(numString, 0, sizeof(numString));
 				numStrIdx = 0;
 				
 				// add it
-				ints_append(addedTo, value);
+				longs_append(addedTo, value);
 			}
 		}
 	}
@@ -115,28 +115,47 @@ int main(int argc, char **argv) {
 	assert(starts.len == ends.len);
 
 	// a dynarr of all solutions
-	ints solutions = ints_new();
+	longs solutions = longs_new();
 
 	// loop for each range
 	for (int i = 0; i < starts.len; i++) {
 		
 		// the starting and ending values
-		int start = starts.data[i];
-		int end = ends.data[i];
+		long start = starts.data[i];
+		long end = ends.data[i];
 
 		// iterate through each number
-		for (int i = start; i <= end; i++) {
+		for (long i = start; i <= end; i++) {
 
 			// TODO
 			// check the integer to see if it follows the pattern.
 			// if it follows the pattern then add it to the solutions.
+			char longStr[17];
+			memset(longStr, 0, sizeof(longStr));
+			sprintf(longStr, "%li", i);
 
+			// the length of the string
+			size_t len = strlen(longStr);
+			size_t halfLen = len / 2;
+			
+			// check if the str is impossible to be a duplicate
+			if (len%2 != 0) continue;
+
+			// make the duplicate string that should be the same
+			char dup[17];
+			memset(dup, 0, sizeof(dup));
+			memcpy(dup, longStr, halfLen);
+			memcpy(dup + halfLen, longStr, halfLen);
+
+			// final check
+			if (strcmp(dup, longStr) == 0) longs_append(&solutions, i);
+			printf("ADDED: %li (%s)\n", i, dup);
 		}
 		printf("\n\n");
 	}
 
 	// the final value to have
-	int solution = 0;
+	long solution = 0;
 
 	// sum the solution
 	for (int i = 0; i < solutions.len; i++) {
@@ -144,7 +163,7 @@ int main(int argc, char **argv) {
 	}
 
 	// print the solution
-	printf("The solution is: %d\n", solution);
+	printf("The solution is: %li\n", solution);
 
 	// all done!
 	return 0;
