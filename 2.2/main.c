@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	longs ends = longs_new();
 	
 	// open the file stream
-	FILE *f = fopen("2/inp.txt", "r");
+	FILE *f = fopen("2.2/inp.txt", "r");
 	if (f == NULL) return 1;
 	
 	// the buffer to store the read bytes
@@ -127,7 +127,6 @@ int main(int argc, char **argv) {
 		// iterate through each number
 		for (long i = start; i <= end; i++) {
 
-			// TODO
 			// check the integer to see if it follows the pattern.
 			// if it follows the pattern then add it to the solutions.
 			char longStr[17];
@@ -136,20 +135,31 @@ int main(int argc, char **argv) {
 
 			// the length of the string
 			size_t len = strlen(longStr);
-			size_t halfLen = len / 2;
-			
-			// check if the str is impossible to be a duplicate
-			if (len%2 != 0) continue;
 
-			// make the duplicate string that should be the same
-			char dup[17];
-			memset(dup, 0, sizeof(dup));
-			memcpy(dup, longStr, halfLen);
-			memcpy(dup + halfLen, longStr, halfLen);
+			// iterate for each possibility
+			for (int iter = 1; iter <= len / 2; iter++) {
 
-			// final check
-			if (strcmp(dup, longStr) == 0) longs_append(&solutions, i);
-			printf("ADDED: %li (%s)\n", i, dup);
+				// do not continue if it is not a perfect multiple
+				if (len % iter != 0) continue; 
+
+				// the amount of times to duplicate the string
+				int times = len / iter;
+
+				// create the chars and clear it
+				char dup[17];
+				memset(dup, 0, sizeof(dup));
+
+				// copy the memory
+				for (size_t offset = 0; offset < times; offset++) memcpy(dup+offset*iter, longStr, iter);
+				printf("copy of %s is %s --- <%d>\n", longStr, dup, iter);
+
+				// check 
+				if (strcmp(dup, longStr) == 0) {
+					longs_append(&solutions, i);
+					printf("ADDED: %li (%s)\n", i, longStr);
+					break;
+				}
+			}
 		}
 		printf("\n\n");
 	}
@@ -164,6 +174,11 @@ int main(int argc, char **argv) {
 
 	// print the solution
 	printf("The solution is: %li\n", solution);
+
+	// free the stuff
+	longs_destroy(&solutions);
+	longs_destroy(&starts);
+	longs_destroy(&ends);
 
 	// all done!
 	return 0;
