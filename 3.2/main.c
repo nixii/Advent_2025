@@ -22,7 +22,7 @@
 int main(int argc, char **argv) {
 
 	// open the file
-	FILE *f = fopen("3.1/inp.txt", "r");
+	FILE *f = fopen("3.2/inp-given.txt", "r");
 
 	// check it worked
 	if (!f) {
@@ -66,6 +66,9 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	// read done
+	printf("read done\n");
+
 	// iterate through each bank to find the best joltage
 	for (int bankIdx = 0; bankIdx < BANK_AMOUNT; bankIdx++) {
 
@@ -74,10 +77,7 @@ int main(int argc, char **argv) {
 
 		// store the 12 largest numbers, initially just the first 12 numbers
 		int largestNums[ON_LEN];
-		memcpy(largestNums, bank, 12 * sizeof(int));
-
-		// what is the current len
-		int currentLength = 0;
+		memset(largestNums, 0, sizeof(largestNums));
 
 		// iterate for all the numbers
 		for (int batIndex = 0; batIndex < BANK_CHARGE_AMOUNT; batIndex++) {
