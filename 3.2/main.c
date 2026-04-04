@@ -119,13 +119,13 @@ int main(int argc, char **argv) {
 	}
 
 	// sum up the joltages
-	long joltageSum = 0;
+	long long joltageSum = 0;
 	for (int joltageIndex = 0; joltageIndex < BANK_AMOUNT; joltageIndex++) {
 		joltageSum += joltages[joltageIndex];
 	}
 
 	// print out the joltage total
-	printf("\nTotal joltage: %ld\n", joltageSum);
+	printf("\nTotal joltage: %lld\n", joltageSum);
 
 	// free everything used
 	fclose(f);
