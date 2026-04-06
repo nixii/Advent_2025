@@ -7,6 +7,7 @@
 #define DA_GROWTH_RATE 2
 #define NREAD 4096
 
+// make a dynamic array of any type macro
 #define MAKE_DA(type, name) \
 	typedef struct name { \
 		type *data; \
@@ -49,14 +50,18 @@
 		l->len--; \
 	}
 
+// a single range, so only one dynamic array is used
 typedef struct range {
 	long min;
 	long max;
 } range;
 
+// create the dynamic arrays
 MAKE_DA(long, longs)
 MAKE_DA(range, ranges)
 
+// compare two ranges by their min value, then their max value if the min value
+// is the same
 int compare_range(const void *a, const void *b) {
 	const range *rA = (const range *)a; 
 	const range *rB = (const range *)b;
@@ -67,14 +72,19 @@ int compare_range(const void *a, const void *b) {
 	return 0;
 }
 
+// combine an entire list of ranges together as much as possible
 void combine_ranges(ranges *r) {
+
+	// sort the entire list first
 	qsort(r->data, r->len, sizeof(r->data[0]), compare_range);
 
-	// 10 15
-	// 20 17
-	// ^  /
-	// 
-
+	// this is a bit complicated so it will be a series of steps.
+	//  1. get the first range and store it in cur.
+	//  2. check cur and the one after it to see if they overlap
+	//  3. if they overlap then combine them and remove the second one
+	//  4. if cur does not overlap with the next one then move it over by one
+	//  5. repeat 2-4 until cur is the final index in the list
+	// this guarantees it will be combined fully
 	range *cur = &r->data[0];
 	while (cur != &r->data[r->len - 1]) {
 		range *next = cur + 1;
@@ -89,62 +99,79 @@ void combine_ranges(ranges *r) {
 	}
 }
 
+// finaly run the program
 int main(void)
 {
 
+	// open the input file
 	FILE *f = fopen("5.2/inp.txt", "r");
 	if (f == NULL) {
 		fprintf(stderr, "file not found\n");
 		return 1;
 	}
 
-	longs ids = longs_new();
+	// stores all the ranges in the file
 	ranges allRanges = ranges_new();
 
+	// read each line into the buffer (they shouldn't go over 4096 chars)
 	char buf[NREAD];
 	while (fgets(buf, NREAD, f) != NULL) {
 		
+		// init the end position
 		char *end = NULL;
+
+		// convert the start of the line into a long, and set the end position
+		// to the character afterwards
 		long val = strtol(buf, &end, 0);
+
+		// if the end position is a '-' sign, it is a range
 		if (end[0] == '-') {
+
+			// get the maximum value of the range and append it
 			long endValue = strtol(end + 1, NULL, 0);
 			ranges_append(&allRanges, (range){.min = val, .max = endValue});
-		} else {
-			longs_append(&ids, val);
 		}
 	}
 
+	// use a different list for the combined ranges
 	ranges combinedRanges = ranges_new();
+
+	// start it with one element
 	ranges_append(&combinedRanges, allRanges.data[0]);
 
+	// DEBUG: print out the entire list and its length
 	printf("\n%zu \n", combinedRanges.len);
 	for (int i = 0; i < combinedRanges.len; i++) {
 		printf("%ld   %ld\n", combinedRanges.data[i].min, combinedRanges.data[i].max);
 	}
 
+	// add one element at a time and combine it in to limit the amount of
+	// comparisons
 	for (int i = 1; i < allRanges.len; i++) {
 		ranges_append(&combinedRanges, allRanges.data[i]);
 		combine_ranges(&combinedRanges);
 	}
 
+	// DEBUG: print out the entire list and its length
 	printf("\n%zu \n", combinedRanges.len);
 	for (int i = 0; i < combinedRanges.len; i++) {
 		printf("%ld   %ld\n", combinedRanges.data[i].min, combinedRanges.data[i].max);
 	}
-
 	printf("\n\n");
 
+	// the total amount of valid IDs
 	long amnt = 0;
 
+	// add the amount of IDs each range covers
 	for (int i = 0; i < combinedRanges.len; i++) {
 		amnt += combinedRanges.data[i].max - combinedRanges.data[i].min + 1;
 	}
 
+	// log it out!
 	printf("Total amount is %ld\n", amnt);
 
-	longs_destroy(&ids);
+	// destroy everything fto save memory (not important in this small program)
 	ranges_destroy(&allRanges);
 	ranges_destroy(&combinedRanges);
-
 	return 0;
 }
